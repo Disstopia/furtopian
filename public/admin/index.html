@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Furtopian 관리</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fff8f5; --card: #fffafa; --line: #f0c0c0; --soft: #fde8e8; --soft2: #f9d0d0;
+    --main: #f4a0a0; --deep: #e87070; --accent: #d44f7a;
+    --text: #3a2020; --mid: #7a4444; --muted: #b07070;
+    --ok: #3f8f5a; --danger: #c0392b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nanum Gothic', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; padding-bottom: 90px; }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  h1, h2, h3, .baloo { font-family: 'Baloo 2', 'Nanum Gothic', sans-serif; }
+  .hide { display: none !important; }
+
+  /* 로그인 */
+  #login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+  .login-box { background: var(--card); border: 2px solid var(--line); border-radius: 24px; padding: 32px 24px; width: 100%; max-width: 340px; text-align: center; }
+  .login-box h1 { color: var(--deep); font-size: 1.6rem; }
+  .login-box p { color: var(--muted); font-size: 0.85rem; margin: 4px 0 20px; }
+  .login-box input { width: 100%; text-align: center; font-size: 1.3rem; letter-spacing: 0.3em; }
+
+  /* 상단 */
+  header { position: sticky; top: 0; z-index: 20; background: rgba(255,248,245,0.95); backdrop-filter: blur(10px); border-bottom: 2px dashed var(--line); }
+  .top { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; max-width: 900px; margin: 0 auto; }
+  .top h1 { color: var(--deep); font-size: 1.25rem; }
+  .top a { color: var(--accent); font-size: 0.85rem; font-weight: 700; text-decoration: none; }
+  .tabs { display: flex; gap: 6px; padding: 0 16px 10px; max-width: 900px; margin: 0 auto; overflow-x: auto; }
+  .tab { flex: none; border: 2px solid var(--line); background: var(--card); color: var(--mid); border-radius: 999px; padding: 6px 14px; font-weight: 700; cursor: pointer; }
+  .tab.on { background: var(--deep); border-color: var(--deep); color: #fff; }
+
+  main { max-width: 900px; margin: 0 auto; padding: 16px; }
+  .help { color: var(--muted); font-size: 0.82rem; line-height: 1.6; margin-bottom: 14px; }
+
+  /* 공통 */
+  .card { background: var(--card); border: 2px solid var(--line); border-radius: 18px; margin-bottom: 10px; overflow: hidden; }
+  .card.off { opacity: 0.6; }
+  .row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+  .row .title { flex: 1; min-width: 0; cursor: pointer; }
+  .row .title b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .title small { color: var(--muted); font-size: 0.78rem; }
+  .emoji { width: 40px; height: 40px; flex: none; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-size: 1.3rem; }
+  .icon-btn { flex: none; width: 34px; height: 34px; border-radius: 10px; border: 1.5px solid var(--line); background: #fff; cursor: pointer; font-size: 0.9rem; }
+  .icon-btn:disabled { opacity: 0.3; cursor: default; }
+  .badge { font-size: 0.7rem; background: var(--soft2); color: var(--accent); border-radius: 8px; padding: 1px 6px; margin-left: 4px; font-weight: 700; }
+  .editor { border-top: 1.5px dashed var(--line); padding: 14px 12px; display: grid; gap: 12px; background: #fff; }
+  label.f { display: grid; gap: 4px; font-size: 0.8rem; font-weight: 700; color: var(--mid); }
+  label.f small { font-weight: 400; color: var(--muted); }
+  input[type=text], input[type=password], textarea, select { border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 10px; background: #fff; width: 100%; font-size: 0.95rem; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--main); border-color: var(--main); }
+  textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid-e { display: grid; grid-template-columns: 70px 1fr; gap: 10px; }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; cursor: pointer; }
+  .check input { width: 18px; height: 18px; accent-color: var(--deep); }
+  .btn { border: none; border-radius: 999px; padding: 9px 16px; font-weight: 700; cursor: pointer; background: var(--soft2); color: var(--accent); }
+  .btn.main { background: var(--deep); color: #fff; }
+  .btn.line { background: #fff; border: 2px solid var(--line); color: var(--mid); }
+  .btn.danger { background: #fff; border: 2px solid #f3c4c0; color: var(--danger); }
+  .btn.wide { width: 100%; }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .add-new { width: 100%; border: 2px dashed var(--main); background: transparent; color: var(--deep); border-radius: 18px; padding: 14px; font-weight: 700; cursor: pointer; }
+
+  /* 사진 */
+  .photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+  .ph { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--soft); border: 1.5px solid var(--line); }
+  .ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ph .no { position: absolute; top: 4px; left: 4px; background: rgba(58,32,32,0.7); color: #fff; font-size: 0.7rem; border-radius: 6px; padding: 0 5px; }
+  .ph .ctl { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; padding: 3px; background: linear-gradient(transparent, rgba(0,0,0,0.45)); }
+  .ph .ctl button { width: 26px; height: 26px; border: none; border-radius: 7px; background: rgba(255,255,255,0.92); cursor: pointer; font-size: 0.8rem; }
+  .ph .ctl button.x { color: var(--danger); }
+  .ph.uploading { display: grid; place-items: center; font-size: 0.75rem; color: var(--mid); }
+  .adder { border: 1.5px dashed var(--line); border-radius: 14px; padding: 10px; display: grid; gap: 8px; background: var(--bg); }
+  .adder .btns { align-items: center; }
+  .file-btn { position: relative; overflow: hidden; }
+  .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+  /* 가격표 탭 고르기 */
+  .cat-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .cat-chip { border: 2px solid var(--line); background: #fff; border-radius: 999px; padding: 5px 12px; cursor: pointer; font-weight: 700; color: var(--mid); }
+  .cat-chip.on { border-color: var(--accent); background: var(--soft); color: var(--accent); }
+  .cat-chip.off { text-decoration: line-through; }
+  .box { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 14px 12px; display: grid; gap: 12px; margin-bottom: 14px; }
+  .box h3 { font-size: 1rem; color: var(--deep); }
+
+  /* 저장 바 */
+  .savebar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--text); color: #fff; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; justify-content: center; transform: translateY(110%); transition: transform 0.25s; }
+  .savebar.show { transform: none; }
+  .savebar span { font-size: 0.85rem; flex: 1; max-width: 220px; }
+  .savebar .btn { white-space: nowrap; flex: none; }
+  .btn { white-space: nowrap; }
+  .savebar .btn.main { background: var(--main); color: var(--text); }
+  .toast { position: fixed; left: 50%; top: 16px; transform: translate(-50%, -150%); z-index: 50; background: var(--text); color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 0.88rem; transition: transform 0.25s; max-width: calc(100% - 32px); text-align: center; }
+  .toast.show { transform: translate(-50%, 0); }
+  .toast.err { background: var(--danger); }
+  .empty { text-align: center; color: var(--muted); padding: 24px 0; font-size: 0.88rem; }
+
+  @media (max-width: 520px) { .grid2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <form class="login-box" id="login-form">
+    <h1>🐾 furtopian</h1>
+    <p>관리 화면 · PIN을 입력해 주세요</p>
+    <input type="password" id="pin" inputmode="numeric" autocomplete="current-password" required>
+    <button class="btn main wide" style="margin-top:12px">들어가기</button>
+    <p id="login-err" style="color:var(--danger);margin:12px 0 0"></p>
+  </form>
+</div>
+
+<div id="app" class="hide">
+  <header>
+    <div class="top">
+      <h1>🐾 furtopian 관리</h1>
+      <a href="/" target="_blank">사이트 보기 ↗</a>
+    </div>
+    <div class="tabs" id="tabs">
+      <button class="tab on" data-tab="makers">🎨 메이커</button>
+      <button class="tab" data-tab="pricing">💰 가격표</button>
+      <button class="tab" data-tab="gallery">🖼️ 갤러리</button>
+      <button class="tab" data-tab="settings">⚙️ 설정</button>
+    </div>
+  </header>
+  <main id="view"></main>
+</div>
+
+<div class="savebar" id="savebar">
+  <span>저장 안 된 변경이 있어요</span>
+  <button class="btn line" id="undo-btn" style="background:transparent;color:#fff;border-color:#7a4444">되돌리기</button>
+  <button class="btn main" id="save-btn">저장하기</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== 상태 =====================
+let PIN = '';
+let D = null;          // 편집 중인 데이터
+let SAVED = '';        // 마지막으로 저장된 데이터 (비교용)
+let TAB = 'makers';
+let openMaker = null, openItem = null, curCat = null;
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = (p) => p + Math.random().toString(36).slice(2, 9);
+const lines = (s) => String(s || '').split('\n').map((x) => x.trim()).filter(Boolean);
+
+function toast(msg, err) {
+  const t = $('#toast');
+  t.textContent = msg; t.classList.toggle('err', !!err); t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), err ? 4000 : 2200);
+}
+
+async function api(action, extra = {}) {
+  const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin: PIN, action, ...extra }) });
+  let j = {};
+  try { j = await r.json(); } catch {}
+  if (!r.ok) throw new Error(j.error || (r.status === 413 ? '사진이 너무 커요' : '서버 오류 (' + r.status + ')'));
+  return j;
+}
+
+function markDirty() {
+  $('#savebar').classList.toggle('show', JSON.stringify(D) !== SAVED);
+}
+window.addEventListener('beforeunload', (e) => { if (D && JSON.stringify(D) !== SAVED) { e.preventDefault(); e.returnValue = ''; } });
+
+// ===================== 로그인 =====================
+$('#login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  PIN = $('#pin').value.trim();
+  $('#login-err').textContent = '';
+  try {
+    const j = await api('login');
+    try { sessionStorage.setItem('furt-pin', PIN); } catch {}
+    start(j.data);
+  } catch (err) { $('#login-err').textContent = err.message; }
+});
+
+function start(data) {
+  D = data; SAVED = JSON.stringify(D);
+  curCat = D.pricing[0]?.id || null;
+  $('#login').classList.add('hide'); $('#app').classList.remove('hide');
+  render();
+}
+
+(async () => {
+  let saved = '';
+  try { saved = sessionStorage.getItem('furt-pin') || ''; } catch {}
+  if (!saved) return;
+  PIN = saved;
+  try { start((await api('login')).data); } catch { try { sessionStorage.removeItem('furt-pin'); } catch {} }
+})();
+
+// ===================== 저장 =====================
+$('#save-btn').addEventListener('click', async () => {
+  const b = $('#save-btn'); b.disabled = true; b.textContent = '저장 중…';
+  try {
+    const j = await api('save', { data: D });
+    D = j.data; SAVED = JSON.stringify(D);
+    markDirty(); render();
+    toast('저장했어요! 사이트에 바로 반영돼요 🐾');
+  } catch (err) { toast(err.message, true); }
+  b.disabled = false; b.textContent = '저장하기';
+});
+$('#undo-btn').addEventListener('click', () => {
+  if (!confirm('마지막 저장 이후 바꾼 내용을 모두 되돌릴까요?')) return;
+  D = JSON.parse(SAVED);
+  if (!D.pricing.find((c) => c.id === curCat)) curCat = D.pricing[0]?.id || null;
+  markDirty(); render();
+});
+
+// ===================== 탭 =====================
+$('#tabs').addEventListener('click', (e) => {
+  const t = e.target.closest('.tab'); if (!t) return;
+  TAB = t.dataset.tab;
+  document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === t));
+  render(); window.scrollTo(0, 0);
+});
+
+function render() {
+  const v = $('#view');
+  if (TAB === 'makers') v.innerHTML = viewMakers();
+  if (TAB === 'pricing') v.innerHTML = viewPricing();
+  if (TAB === 'gallery') v.innerHTML = viewGallery();
+  if (TAB === 'settings') v.innerHTML = viewSettings();
+}
+
+// ===================== 사진 목록 (공통) =====================
+// path: 사진 배열이 있는 위치 ('g' = 갤러리, 'm:<id>' = 메이커)
+function photosOf(path) {
+  if (path === 'g') return D.gallery;
+  if (path.startsWith('m:')) return D.makers.find((m) => m.id === path.slice(2)).images;
+}
+function photoBlock(path, list, frontDefault) {
+  return `
+    <div class="adder">
+      <div class="btns">
+        <span class="btn file-btn">📷 사진 올리기<input type="file" accept="image/*" multiple data-act="ph-upload" data-path="${path}"></span>
+        <button class="btn line" data-act="ph-link-toggle" data-path="${path}">🔗 링크로 추가</button>
+        <label class="check" style="margin-left:auto"><input type="checkbox" data-front="${path}" ${frontDefault ? 'checked' : ''}> 맨 앞에 넣기</label>
+      </div>
+      <div class="hide" data-linkbox="${path}" style="display:grid;gap:8px">
+        <textarea placeholder="이미지 주소를 한 줄에 하나씩 붙여 넣으세요&#10;예) https://pbs.twimg.com/media/....?format=jpg&amp;name=large" rows="3"></textarea>
+        <button class="btn main" data-act="ph-link-add" data-path="${path}">추가</button>
+      </div>
+    </div>
+    <div class="photos" style="margin-top:8px">
+      ${list.map((src, i) => `
+        <div class="ph">
+          <img src="${esc(src)}" loading="lazy" referrerpolicy="no-referrer" alt="">
+          <span class="no">${i + 1}</span>
+          <div class="ctl">
+            <button data-act="ph-move" data-path="${path}" data-i="${i}" data-d="-1" ${i === 0 ? 'disabled' : ''} title="앞으로">◀</button>
+            <button class="x" data-act="ph-del" data-path="${path}" data-i="${i}" title="빼기">✕</button>
+            <button data-act="ph-move" data-path="${path}" data-i="${i}" data-d="1" ${i === list.length - 1 ? 'disabled' : ''} title="뒤로">▶</button>
+          </div>
+        </div>`).join('')}
+      <div class="ph uploading hide" data-uploading="${path}">올리는 중…</div>
+    </div>
+    ${list.length ? '' : '<p class="empty" style="padding:8px 0">아직 사진이 없어요</p>'}
+`;
+}
+
+function addPhotos(path, urls) {
+  const list = photosOf(path);
+  const front = $(`[data-front="${path}"]`)?.checked;
+  if (front) list.unshift(...urls); else list.push(...urls);
+}
+
+// 폰 사진을 긴 변 1600px로 줄여서 jpg로
+function shrink(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const max = 1600;
+      const k = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', 0.85).split(',')[1]);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('사진을 열 수 없어요: ' + file.name)); };
+    img.src = url;
+  });
+}
+
+async function uploadFiles(files) {
+  const out = [];
+  for (const f of files) {
+    const b64 = await shrink(f);
+    const j = await api('upload', { type: 'image/jpeg', b64 });
+    out.push(j.url);
+  }
+  return out;
+}
+
+// ===================== 메이커 =====================
+function viewMakers() {
+  const n = D.makers.length;
+  return `
+    <p class="help">메이커를 누르면 이름·설명·포트폴리오 사진을 고칠 수 있어요. ▲▼로 사이트에 보이는 순서를 바꿔요. 다 고친 뒤 아래 <b>저장하기</b>를 눌러야 사이트에 반영돼요.</p>
+    ${D.makers.map((m, i) => `
+      <div class="card ${m.hidden ? 'off' : ''}">
+        <div class="row">
+          <div class="emoji">${esc(m.emoji || '🐾')}</div>
+          <div class="title" data-act="m-open" data-id="${m.id}">
+            <b>${esc(m.name)}${m.hidden ? '<span class="badge">숨김</span>' : ''}</b>
+            <small>${esc(m.desc) || '설명 없음'} · 사진 ${m.images.length}장</small>
+          </div>
+          <button class="icon-btn" data-act="m-move" data-i="${i}" data-d="-1" ${i === 0 ? 'disabled' : ''}>▲</button>
+          <button class="icon-btn" data-act="m-move" data-i="${i}" data-d="1" ${i === n - 1 ? 'disabled' : ''}>▼</button>
+        </div>
+        ${openMaker === m.id ? `
+        <div class="editor">
+          <div class="grid-e">
+            <label class="f">아이콘<input type="text" data-bind="m.emoji" data-id="${m.id}" value="${esc(m.emoji)}" maxlength="16"></label>
+            <label class="f">이름<input type="text" data-bind="m.name" data-id="${m.id}" value="${esc(m.name)}" maxlength="60"></label>
+          </div>
+          <label class="f">스타일 설명 <small>예) 키구 스타일 · 헤드베이스 커스텀 가능</small>
+            <input type="text" data-bind="m.desc" data-id="${m.id}" value="${esc(m.desc)}" maxlength="200"></label>
+          <label class="check"><input type="checkbox" data-bind="m.hidden" data-id="${m.id}" ${m.hidden ? 'checked' : ''}> 사이트에서 숨기기 <small style="color:var(--muted)">(휴재 중일 때 등)</small></label>
+          <div class="f" style="font-size:0.8rem;font-weight:700;color:var(--mid)">포트폴리오 사진 <small style="font-weight:400;color:var(--muted)">◀ ▶ 순서 바꾸기 · ✕ 빼기</small></div>
+          ${photoBlock('m:' + m.id, m.images, false)}
+          <div class="btns" style="justify-content:space-between">
+            <button class="btn danger" data-act="m-del" data-id="${m.id}">메이커 삭제</button>
+            <button class="btn line" data-act="m-open" data-id="${m.id}">접기</button>
+          </div>
+        </div>` : ''}
+      </div>`).join('')}
+    <button class="add-new" data-act="m-add">+ 메이커 추가</button>`;
+}
+
+// ===================== 가격표 =====================
+function viewPricing() {
+  const cat = D.pricing.find((c) => c.id === curCat);
+  const ci = D.pricing.indexOf(cat);
+  return `
+    <p class="help">위에서 탭(케모노, 스트레치퍼 …)을 고른 뒤 가격 카드를 고쳐요. 카드를 누르면 펼쳐져요. 다 고친 뒤 <b>저장하기</b>를 눌러 주세요.</p>
+    <div class="cat-chips">
+      ${D.pricing.map((c) => `<button class="cat-chip ${c.id === curCat ? 'on' : ''} ${c.hidden ? 'off' : ''}" data-act="c-pick" data-id="${c.id}">${esc(c.icon)} ${esc(c.name)}</button>`).join('')}
+      <button class="cat-chip" data-act="c-add" style="border-style:dashed">+ 탭 추가</button>
+    </div>
+    ${cat ? `
+    <div class="box">
+      <h3>탭 설정</h3>
+      <div class="grid-e">
+        <label class="f">아이콘<input type="text" data-bind="c.icon" value="${esc(cat.icon)}" maxlength="16"></label>
+        <label class="f">탭 이름<input type="text" data-bind="c.name" value="${esc(cat.name)}" maxlength="30"></label>
+      </div>
+      <label class="f">카드 아래 안내 문구 <small>비워두면 안 보여요</small>
+        <input type="text" data-bind="c.footnote" value="${esc(cat.footnote)}" maxlength="300"></label>
+      <label class="check"><input type="checkbox" data-bind="c.hidden" ${cat.hidden ? 'checked' : ''}> 이 탭 전체 숨기기</label>
+      <div class="btns">
+        <button class="btn line" data-act="c-move" data-d="-1" ${ci === 0 ? 'disabled' : ''}>◀ 탭 앞으로</button>
+        <button class="btn line" data-act="c-move" data-d="1" ${ci === D.pricing.length - 1 ? 'disabled' : ''}>탭 뒤로 ▶</button>
+        <button class="btn danger" data-act="c-del" style="margin-left:auto">탭 삭제</button>
+      </div>
+    </div>
+    ${cat.items.map((it, i) => itemCard(it, i, cat.items.length)).join('')}
+    <button class="add-new" data-act="i-add">+ 가격 카드 추가</button>` : '<p class="empty">탭을 추가해 주세요</p>'}`;
+}
+
+function itemCard(it, i, n) {
+  const open = openItem === it.id;
+  return `
+    <div class="card ${it.hidden ? 'off' : ''}">
+      <div class="row">
+        <div class="emoji">${esc(it.icon || '🐾')}</div>
+        <div class="title" data-act="i-open" data-id="${it.id}">
+          <b>${esc(it.title)} <span style="color:var(--deep)">${esc(it.amount)}</span>${it.badge ? `<span class="badge">${esc(it.badge)}</span>` : ''}${it.hidden ? '<span class="badge">숨김</span>' : ''}</b>
+          <small>${esc(it.features.join(' · ')) || '포함 내용 없음'}</small>
+        </div>
+        <button class="icon-btn" data-act="i-move" data-i="${i}" data-d="-1" ${i === 0 ? 'disabled' : ''}>▲</button>
+        <button class="icon-btn" data-act="i-move" data-i="${i}" data-d="1" ${i === n - 1 ? 'disabled' : ''}>▼</button>
+      </div>
+      ${open ? `
+      <div class="editor">
+        <div class="grid-e">
+          <label class="f">아이콘<input type="text" data-bind="i.icon" data-id="${it.id}" value="${esc(it.icon)}" maxlength="16"></label>
+          <label class="f">이름<input type="text" data-bind="i.title" data-id="${it.id}" value="${esc(it.title)}" maxlength="60"></label>
+        </div>
+        <div class="grid2">
+          <label class="f">가격 <small>예) $450+</small><input type="text" data-bind="i.amount" data-id="${it.id}" value="${esc(it.amount)}" maxlength="30"></label>
+          <label class="f">영문/부제 <small>예) Kemono Head</small><input type="text" data-bind="i.sub" data-id="${it.id}" value="${esc(it.sub)}" maxlength="60"></label>
+        </div>
+        <label class="f">가격 아래 작은 글<input type="text" data-bind="i.from" data-id="${it.id}" value="${esc(it.from)}" maxlength="60"></label>
+        <label class="f">포함 내용 <small>한 줄에 하나씩 · 🐾 목록으로 보여요</small>
+          <textarea data-bind="i.features" data-id="${it.id}" rows="3">${esc(it.features.join('\n'))}</textarea></label>
+        <label class="f">추가 옵션 태그 <small>한 줄에 하나씩 · 비워두면 안 보여요</small>
+          <textarea data-bind="i.options" data-id="${it.id}" rows="2">${esc(it.options.join('\n'))}</textarea></label>
+        <label class="f">안내 박스 <small>예) 📏 신청 시 **해당 치수 + 키 (cm) 필수** · **굵게** 가능 · 비워두면 안 보여요</small>
+          <textarea data-bind="i.noteText" data-id="${it.id}" rows="2">${esc(it.note?.text || '')}</textarea></label>
+        <label class="f">안내 박스를 누르면 뜨는 이미지 <small>치수표 등 · 이미지 주소</small>
+          <div style="display:flex;gap:6px">
+            <input type="text" data-bind="i.noteImage" data-id="${it.id}" value="${esc(it.note?.image || '')}" placeholder="https://…">
+            <span class="btn file-btn" style="flex:none">📷<input type="file" accept="image/*" data-act="note-upload" data-id="${it.id}"></span>
+          </div></label>
+        <div class="grid2">
+          <label class="f">모서리 리본 <small>예) BASE, BEST · 비워두면 없음</small><input type="text" data-bind="i.badge" data-id="${it.id}" value="${esc(it.badge)}" maxlength="12"></label>
+          <label class="f">버튼
+            <select data-bind="i.button" data-id="${it.id}">
+              <option value="quote" ${it.button !== 'order' ? 'selected' : ''}>무료 견적 문의 (흰 버튼)</option>
+              <option value="order" ${it.button === 'order' ? 'selected' : ''}>주문하기 🐾 (분홍 버튼)</option>
+            </select></label>
+        </div>
+        <label class="check"><input type="checkbox" data-bind="i.hidden" data-id="${it.id}" ${it.hidden ? 'checked' : ''}> 사이트에서 숨기기</label>
+        <div class="btns">
+          <button class="btn danger" data-act="i-del" data-id="${it.id}">삭제</button>
+          <button class="btn line" data-act="i-dup" data-id="${it.id}">복제</button>
+          <button class="btn line" data-act="i-open" data-id="${it.id}" style="margin-left:auto">접기</button>
+        </div>
+      </div>` : ''}
+    </div>`;
+}
+
+// ===================== 갤러리 =====================
+function viewGallery() {
+  return `
+    <p class="help">'이전 작품' 갤러리 사진이에요. 새 사진은 기본으로 맨 앞에 들어가요. ◀ ▶로 순서를 바꾸고 ✕로 빼요. 다 고친 뒤 <b>저장하기</b>를 눌러 주세요.<br>지금 ${D.gallery.length}장</p>
+    ${photoBlock('g', D.gallery, true)}`;
+}
+
+// ===================== 설정 =====================
+function viewSettings() {
+  return `
+    <div class="box">
+      <h3>PIN 바꾸기</h3>
+      <label class="f">새 PIN <small>공백 없이 4자 이상</small><input type="password" id="new-pin" autocomplete="new-password"></label>
+      <label class="f">새 PIN 한 번 더<input type="password" id="new-pin2" autocomplete="new-password"></label>
+      <button class="btn main" data-act="set-pin">PIN 바꾸기</button>
+    </div>
+    <div class="box">
+      <h3>백업</h3>
+      <p class="help" style="margin:0">지금 화면의 메이커·가격표·갤러리 내용을 파일로 받아두거나, 받아둔 파일로 되돌릴 수 있어요. (불러온 뒤 저장하기를 눌러야 반영돼요)</p>
+      <div class="btns">
+        <button class="btn line" data-act="backup">⬇ 백업 파일 받기</button>
+        <span class="btn line file-btn">⬆ 백업 불러오기<input type="file" accept=".json,application/json" data-act="restore"></span>
+      </div>
+    </div>
+    <button class="btn line wide" data-act="logout">로그아웃</button>`;
+}
+
+// ===================== 입력 =====================
+const findItem = (id) => D.pricing.find((c) => c.id === curCat)?.items.find((x) => x.id === id);
+
+document.addEventListener('input', (e) => {
+  const el = e.target, b = el.dataset.bind;
+  if (!b) return;
+  const val = el.type === 'checkbox' ? el.checked : el.value;
+  const [kind, key] = b.split('.');
+  if (kind === 'm') {
+    const m = D.makers.find((x) => x.id === el.dataset.id); m[key] = val;
+    if (key === 'hidden') render();
+  } else if (kind === 'c') {
+    const c = D.pricing.find((x) => x.id === curCat); c[key] = val;
+    if (key !== 'footnote') { const keep = document.activeElement === el; render(); if (keep) { const n = $(`[data-bind="${b}"]`); n.focus(); n.setSelectionRange?.(n.value.length, n.value.length); } }
+  } else if (kind === 'i') {
+    const it = findItem(el.dataset.id);
+    if (key === 'features' || key === 'options') it[key] = lines(val);
+    else if (key === 'noteText' || key === 'noteImage') {
+      it.note = it.note || { text: '', image: '' };
+      it.note[key === 'noteText' ? 'text' : 'image'] = val.trim();
+      if (!it.note.text && !it.note.image) it.note = null;
+    } else it[key] = val;
+    if (key === 'hidden') render();
+  }
+  markDirty();
+});
+document.addEventListener('change', (e) => {
+  if (e.target.matches('select[data-bind]')) e.target.dispatchEvent(new Event('input', { bubbles: true }));
+});
+
+// ===================== 버튼 =====================
+document.addEventListener('click', async (e) => {
+  const t = e.target.closest('[data-act]');
+  if (!t || t.type === 'file') return;
+  const a = t.dataset.act, id = t.dataset.id, i = +t.dataset.i, d = +t.dataset.d;
+  const swap = (arr, i, j) => { [arr[i], arr[j]] = [arr[j], arr[i]]; };
+
+  switch (a) {
+    // 메이커
+    case 'm-open': openMaker = openMaker === id ? null : id; break;
+    case 'm-move': swap(D.makers, i, i + d); break;
+    case 'm-add': {
+      const m = { id: uid('m'), name: 'Maker ' + String(D.makers.length + 1).padStart(2, '0'), emoji: '🐾', desc: '', hidden: false, images: [] };
+      D.makers.push(m); openMaker = m.id;
+      render(); markDirty();
+      setTimeout(() => $(`[data-bind="m.name"][data-id="${m.id}"]`)?.focus(), 50);
+      return;
+    }
+    case 'm-del': {
+      const m = D.makers.find((x) => x.id === id);
+      if (!confirm(`'${m.name}' 메이커를 삭제할까요?`)) return;
+      D.makers = D.makers.filter((x) => x.id !== id); break;
+    }
+    // 사진
+    case 'ph-move': { const l = photosOf(t.dataset.path); swap(l, i, i + d); break; }
+    case 'ph-del': { const l = photosOf(t.dataset.path); l.splice(i, 1); break; }
+    case 'ph-link-toggle': $(`[data-linkbox="${t.dataset.path}"]`).classList.toggle('hide'); return;
+    case 'ph-link-add': {
+      const box = $(`[data-linkbox="${t.dataset.path}"] textarea`);
+      const urls = lines(box.value);
+      const bad = urls.filter((u) => !/^https:\/\/\S+$/.test(u));
+      if (!urls.length) return;
+      if (bad.length) { toast('https:// 로 시작하는 이미지 주소만 넣을 수 있어요', true); return; }
+      if (urls.some((u) => /(x|twitter)\.com\/.+\/status\//.test(u))) { toast('트윗 주소가 아니라 사진 주소(pbs.twimg.com/…)를 넣어 주세요', true); return; }
+      addPhotos(t.dataset.path, urls);
+      toast(`${urls.length}장 추가했어요`); break;
+    }
+    // 가격표 탭
+    case 'c-pick': curCat = id; openItem = null; break;
+    case 'c-add': {
+      const c = { id: uid('c'), icon: '✨', name: '새 탭', footnote: '', hidden: false, items: [] };
+      D.pricing.push(c); curCat = c.id; break;
+    }
+    case 'c-move': { const ci = D.pricing.findIndex((c) => c.id === curCat); swap(D.pricing, ci, ci + d); break; }
+    case 'c-del': {
+      const c = D.pricing.find((x) => x.id === curCat);
+      if (!confirm(`'${c.name}' 탭과 안의 가격 카드 ${c.items.length}개를 모두 삭제할까요?`)) return;
+      D.pricing = D.pricing.filter((x) => x !== c); curCat = D.pricing[0]?.id || null; break;
+    }
+    // 가격 카드
+    case 'i-open': openItem = openItem === id ? null : id; break;
+    case 'i-move': { const l = D.pricing.find((c) => c.id === curCat).items; swap(l, i, i + d); break; }
+    case 'i-add': {
+      const it = { id: uid('i'), icon: '🐾', title: '새 항목', sub: '', amount: '$0+', from: '기본가 / 실제 가격 변동', features: [], options: [], note: null, badge: '', button: 'quote', hidden: false };
+      D.pricing.find((c) => c.id === curCat).items.push(it); openItem = it.id; break;
+    }
+    case 'i-dup': {
+      const l = D.pricing.find((c) => c.id === curCat).items;
+      const src = l.find((x) => x.id === id);
+      const copy = { ...JSON.parse(JSON.stringify(src)), id: uid('i'), title: src.title + ' (복사)' };
+      l.splice(l.indexOf(src) + 1, 0, copy); openItem = copy.id; break;
+    }
+    case 'i-del': {
+      const c = D.pricing.find((x) => x.id === curCat);
+      const it = c.items.find((x) => x.id === id);
+      if (!confirm(`'${it.title}' 카드를 삭제할까요?`)) return;
+      c.items = c.items.filter((x) => x !== it); break;
+    }
+    // 설정
+    case 'set-pin': {
+      const p1 = $('#new-pin').value.trim(), p2 = $('#new-pin2').value.trim();
+      if (p1 !== p2) { toast('두 PIN이 달라요', true); return; }
+      try {
+        await api('setpin', { newPin: p1 });
+        PIN = p1; try { sessionStorage.setItem('furt-pin', PIN); } catch {}
+        $('#new-pin').value = $('#new-pin2').value = '';
+        toast('PIN을 바꿨어요');
+      } catch (err) { toast(err.message, true); }
+      return;
+    }
+    case 'backup': {
+      const blob = new Blob([JSON.stringify(D, null, 2)], { type: 'application/json' });
+      const a2 = document.createElement('a');
+      a2.href = URL.createObjectURL(blob);
+      a2.download = 'furtopian-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+      a2.click(); setTimeout(() => URL.revokeObjectURL(a2.href), 1000);
+      return;
+    }
+    case 'logout':
+      if (JSON.stringify(D) !== SAVED && !confirm('저장 안 된 변경이 있어요. 그래도 나갈까요?')) return;
+      try { sessionStorage.removeItem('furt-pin'); } catch {}
+      D = null; location.reload(); return;
+    default: return;
+  }
+  render(); markDirty();
+});
+
+// 파일 고르기 (사진 업로드, 백업 불러오기)
+document.addEventListener('change', async (e) => {
+  const el = e.target;
+  if (el.type !== 'file' || !el.files.length) return;
+  const files = [...el.files];
+  el.value = '';
+
+  if (el.dataset.act === 'restore') {
+    try {
+      const data = JSON.parse(await files[0].text());
+      if (!Array.isArray(data.makers) || !Array.isArray(data.pricing) || !Array.isArray(data.gallery)) throw 0;
+      if (!confirm('백업 파일 내용으로 바꿀까요? (저장하기를 눌러야 사이트에 반영돼요)')) return;
+      D = data; curCat = D.pricing[0]?.id || null; openMaker = openItem = null;
+      render(); markDirty(); toast('불러왔어요. 확인 후 저장해 주세요');
+    } catch { toast('백업 파일이 아니에요', true); }
+    return;
+  }
+
+  if (el.dataset.act === 'ph-upload') {
+    const path = el.dataset.path;
+    const ind = $(`[data-uploading="${path}"]`);
+    ind?.classList.remove('hide');
+    try {
+      const done = [];
+      for (const [k, f] of files.entries()) {
+        if (ind) ind.textContent = `올리는 중… ${k + 1}/${files.length}`;
+        done.push(...(await uploadFiles([f])));
+      }
+      addPhotos(path, done);
+      toast(`${done.length}장 올렸어요. 저장하기를 눌러 주세요`);
+    } catch (err) { toast(err.message, true); }
+    render(); markDirty();
+    return;
+  }
+
+  if (el.dataset.act === 'note-upload') {
+    try {
+      toast('올리는 중…');
+      const [url] = await uploadFiles(files);
+      const it = findItem(el.dataset.id);
+      it.note = { text: it.note?.text || '', image: url };
+      toast('올렸어요');
+    } catch (err) { toast(err.message, true); }
+    render(); markDirty();
+  }
+});
+</script>
+</body>
+</html>
